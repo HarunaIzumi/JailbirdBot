@@ -34,4 +34,5 @@ async def info(ctx):
 
     await ctx.send(embed=embed)
 
+# Run bot with token
 bot.run(token)
