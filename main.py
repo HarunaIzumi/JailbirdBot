@@ -3,6 +3,7 @@ import os
 import discord
 from discord.ext import commands
 import logging
+import json
 
 load_dotenv() #Loads enviroment variables
 token = os.getenv("TOKEN")
@@ -18,6 +19,27 @@ bot = commands.Bot(command_prefix="?", intents=intents, log_handler=handler)
 @bot.event
 async def on_ready():
     print(f"The bot is running as {bot.user}")
+
+
+@bot.event # Onboarding bot trap
+async def on_member_update(before, after):
+    
+    role_trap = 1374928771584495689
+
+    roles_before = set(before.roles)
+    roles_after = set(after.roles)
+
+    new_role = roles_after - roles_before
+
+    for role in new_role:
+        if role.id == role_trap:
+            try:
+                await after.kick(reason="Onboarding bot trap failed.")
+                print(f"Kicked {after.name} for failing the Onboarding bot trap.")
+            except discord.Forbidden:
+                print(f"Missing permissions to kick {after.name}.")
+            except Exception as e:
+                print(f"Error kicking {after.name}:{e}.")
 
 @bot.command() #Adds two numbers together
 async def add(ctx, left: int, right: int):
@@ -35,30 +57,28 @@ async def info(ctx):
 
 @bot.command() #lock command
 async def lock(ctx):
-    channel = ctx.channel
-    overwrite = channel.overwrites_for(ctx.guild.default_role)
+    overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
 
     if overwrite.send_messages is False:
-        await ctx.send(f"<#{channel.id}> is already locked.")
+        await ctx.send(f"<#{ctx.channel.id}> is already locked.")
         return
     
     overwrite.send_messages = False
-    await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
-    await ctx.send(f"<#{channel.id}> has been locked.")
+    await ctx.channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
+    await ctx.send(f"<#{ctx.channel.id}> has been locked.")
 
 
 @bot.command() #unlock command
 async def unlock(ctx):
-    channel = ctx.channel
-    overwrite = channel.overwrites_for(ctx.guild.default_role)
+    overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
 
     if overwrite.send_messages is True or None:
-        await ctx.send(f"<#{channel.id}> is already unlocked.")
+        await ctx.send(f"<#{ctx.channel.id}> is already unlocked.")
         return
 
     overwrite.send_messages = None
-    await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
-    await ctx.send(f"<#{channel.id}> has been unlocked.")
+    await ctx.channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
+    await ctx.send(f"<#{ctx.channel.id}> has been unlocked.")
 
 # Run bot with token
 bot.run(token)
