@@ -14,14 +14,14 @@ intents.members = True
 
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
-bot = commands.Bot(command_prefix="?", intents=intents)
+client = commands.client(command_prefix="?", intents=intents)
 
-@bot.event
+@client.event
 async def on_ready():
-    print(f"The bot is running as {bot.user}")
+    print(f"The client is running as {client.user}")
 
 
-@bot.event # Onboarding bot trap
+@client.event # Onboarding client trap
 async def on_member_update(before, after):
     
     role_trap = 1374928771584495689
@@ -34,25 +34,25 @@ async def on_member_update(before, after):
     for role in new_role:
         if role.id == role_trap:
             try:
-                await after.kick(reason="Onboarding bot trap failed.")
-                print(f"Kicked {after.name} for failing the Onboarding bot trap.")
+                await after.kick(reason="Onboarding client trap failed.")
+                print(f"Kicked {after.name} for failing the Onboarding client trap.")
             except discord.Forbidden:
                 print(f"Missing permissions to kick {after.name}.")
             except Exception as e:
                 print(f"Error kicking {after.name}:{e}.")
 
 
-@bot.command() #Information embed command
+@client.command() #Information embed command
 async def info(ctx):
     embed = discord.Embed(
-        description = "This is the info command for **Nerissa's Little Jailbird** bot, created by <@156500926880940032>.\n\nThis is version: Alpha.",
+        description = "This is the info command for **Nerissa's Little Jailbird** client, created by <@156500926880940032>.\n\nThis is version: Alpha.",
         color=discord.Color.blue()
     )
-    embed.set_footer(icon_url=bot.user.avatar.url, text=f"{bot.user}")
+    embed.set_footer(icon_url=client.user.avatar.url, text=f"{client.user}")
 
     await ctx.send(embed=embed)
 
-@bot.command() #lock command
+@client.command() #lock command
 async def lock(ctx):
     overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
 
@@ -65,7 +65,7 @@ async def lock(ctx):
     await ctx.send(f"<#{ctx.channel.id}> has been locked.")
 
 
-@bot.command() #unlock command
+@client.command() #unlock command
 async def unlock(ctx):
     overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
 
@@ -77,5 +77,5 @@ async def unlock(ctx):
     await ctx.channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
     await ctx.send(f"<#{ctx.channel.id}> has been unlocked.")
 
-# Run bot with token
-bot.run(token, log_handler=handler)
+# Run client with token
+client.run(token, log_handler=handler)
