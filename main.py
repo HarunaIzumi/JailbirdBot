@@ -14,7 +14,7 @@ intents.members = True
 
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
-client = commands.client(command_prefix="?", intents=intents)
+client = commands.Bot(command_prefix="?", intents=intents)
 
 @client.event
 async def on_ready():
@@ -41,6 +41,9 @@ async def on_member_update(before, after):
             except Exception as e:
                 print(f"Error kicking {after.name}:{e}.")
 
+@client.command()
+async def ping(ctx):
+    await ctx.send(f":ping_pong: Pong! Latency: {round(client.latency * 1000)}ms")
 
 @client.command() #Information embed command
 async def info(ctx):
