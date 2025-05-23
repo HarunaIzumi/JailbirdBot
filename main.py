@@ -41,9 +41,6 @@ async def on_member_update(before, after):
             except Exception as e:
                 print(f"Error kicking {after.name}:{e}.")
 
-@bot.command() #Adds two numbers together
-async def add(ctx, left: int, right: int):
-    await ctx.send(left + right)
 
 @bot.command() #Information embed command
 async def info(ctx):
