@@ -14,7 +14,7 @@ intents.members = True
 
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
-bot = commands.Bot(command_prefix="?", intents=intents, log_handler=handler)
+bot = commands.Bot(command_prefix="?", intents=intents)
 
 @bot.event
 async def on_ready():
@@ -78,4 +78,4 @@ async def unlock(ctx):
     await ctx.send(f"<#{ctx.channel.id}> has been unlocked.")
 
 # Run bot with token
-bot.run(token)
+bot.run(token, log_handler=handler)
