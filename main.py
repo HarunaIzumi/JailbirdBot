@@ -18,7 +18,7 @@ client = commands.Bot(command_prefix="?", intents=intents)
 
 @client.event
 async def on_ready():
-    print(f"The client is running as {client.user}")
+    print(f"The bot is running as {client.user}")
 
 
 @client.event # Onboarding client trap
@@ -44,6 +44,19 @@ async def on_member_update(before, after):
 @client.command()
 async def ping(ctx):
     await ctx.send(f":ping_pong: Pong! Latency: {round(client.latency * 1000)}ms")
+
+@client.command()
+async def echo(ctx, channel:discord.TextChannel, *, content:str):
+    done = '✅'
+    fail = '❎'
+    try:
+        await channel.send(content)
+        await ctx.message.add_reaction(done)
+    except discord.Forbidden:
+        await ctx.message.add_reaction(fail)
+    except discord.HTTPException:
+        await ctx.message.add_reaction(fail)
+
 
 @client.command() #Information embed command
 async def info(ctx):
