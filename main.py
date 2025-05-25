@@ -5,8 +5,8 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv() # Loads .env file
-token = os.getenv("TOKEN") # Gets Token from .env file
-guild = discord.Object(os.getenv("GUILD_ID")) # Gets Guild ID for slash commands from .env file
+token = os.getenv('TOKEN') # Gets Token from .env file
+guild = discord.Object(os.getenv('GUILD_ID')) # Gets Guild ID for slash commands from .env file
 
 intents = discord.Intents.default()
 intents.message_content = True
