@@ -2,11 +2,25 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import os
+import sys
+import datetime
 from dotenv import load_dotenv
 
 load_dotenv() # Loads .env file
-token = os.getenv('TOKEN') # Gets Token from .env file
-guild = discord.Object(os.getenv('GUILD_ID')) # Gets Guild ID for slash commands from .env file
+
+try:
+    token = os.getenv('TOKEN') # Gets Token from .env file
+    guild = discord.Object(os.getenv('GUILD_ID')) # Gets Guild ID for slash commands from .env file
+except Exception:
+    if os.path.exists("error.log"):
+        errorlog = open("error.log")
+    else:
+        errorlog = open("error.log", "x")
+    
+    with open("error.log", "a") as f:
+        today = datetime.datetime.today()
+        f.write(f"{today: %H:%M:%S %z - %B %d, %Y} - Error opening .env file.\n")
+        sys.exit()
 
 intents = discord.Intents.default()
 intents.message_content = True
