@@ -60,4 +60,34 @@ async def echo(interaction: discord.Interaction, channel: discord.TextChannel, m
     except Exception as e:
         await interaction.response.send_message(f"Couldn't send message: {e}.", ephemeral=True)
 
+@client.tree.command(name="lock", description="Command to lock a channel", guild=guild)
+async def lock(interaction: discord.Interaction):
+    overwrite = interaction.channel.overwrites_for(interaction.guild.default_role)
+    if overwrite.send_messages is False:
+        await interaction.response.send_message(f"<#{interaction.channel.id}> is already locked.")
+        return
+    overwrite.send_messages = False
+    try:
+        await interaction.channel.set_permissions(interaction.guild.default_role, overwrite=overwrite)
+        await interaction.response.send_message(f"<#{interaction.channel.id}> has been locked.")
+    except discord.Forbidden:
+        await interaction.response.send_message(f"Failed to lock the channel: Missing permissions.")
+    except Exception as e:
+        await interaction.response.send_message(f"Failed to lock the channel: {e}")
+
+@client.tree.command(name="unlock", description="Command to unlock a channel", guild=guild)
+async def unlock(interaction: discord.Interaction):
+    overwrite = interaction.channel.overwrites_for(interaction.guild.default_role)
+    if overwrite.send_messages is True or overwrite.send_messages is None:
+        await interaction.response.send_message(f"<#{interaction.channel.id}> is already unlocked.")
+        return
+    overwrite.send_messages = None
+    try:
+        await interaction.channel.set_permissions(interaction.guild.default_role, overwrite=overwrite)
+        await interaction.response.send_message(f"<#{interaction.channel.id}> has been unlocked.")
+    except discord.Forbidden:
+        await interaction.response.send_message(f"Failed to unlock the channel: Missing permissions.")
+    except Exception as e:
+        await interaction.response.send_message(f"Failed to unlock the channel: {e}")
+
 client.run(token)
