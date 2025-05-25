@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 
 load_dotenv() # Loads .env file
 
-try:
+if os.path.exists(".env"):
     token = os.getenv('TOKEN') # Gets Token from .env file
     guild = discord.Object(os.getenv('GUILD_ID')) # Gets Guild ID for slash commands from .env file
-except Exception:
+else:
     if os.path.exists("error.log"):
         errorlog = open("error.log")
     else:
