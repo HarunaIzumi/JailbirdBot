@@ -1,97 +1,93 @@
-from dotenv import load_dotenv
-import os
 import discord
 from discord.ext import commands
-import logging
-import json
+from discord import app_commands
+import os
+from dotenv import load_dotenv
 
-load_dotenv() #Loads enviroment variables
-token = os.getenv("TOKEN")
+load_dotenv() # Loads .env file
+token = os.getenv('TOKEN') # Gets Token from .env file
+guild = discord.Object(os.getenv('GUILD_ID')) # Gets Guild ID for slash commands from .env file
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-
-client = commands.Bot(command_prefix="?", intents=intents)
+client = commands.Bot(command_prefix='j?', intents=intents)
 
 @client.event
 async def on_ready():
     print(f"The bot is running as {client.user}")
+    try:
+        synced = await client.tree.sync(guild=guild)
+        print(f"Synced {len(synced)} commands to guild {guild.id}")
+    except Exception as e:
+        print (f"Error syncing commands: {e}")
 
-
-@client.event # Onboarding client trap
+@client.event # Onboarding role trap
 async def on_member_update(before, after):
-    
-    role_trap = 1374928771584495689
-
-    roles_before = set(before.roles)
-    roles_after = set(after.roles)
-
-    new_role = roles_after - roles_before
-
-    for role in new_role:
-        if role.id == role_trap:
+    roletrap = 1374928771584495689
+    roleupdate = set(after.roles) - set(before.roles)
+    for role in roleupdate:
+        if role.id == roletrap:
             try:
-                await after.kick(reason="Onboarding client trap failed.")
-                print(f"Kicked {after.name} for failing the Onboarding client trap.")
+                await after.kick(reason="Onboarding role trap failed.")
+                print(f"Kicked {after.name} for failing the Onboarding role trap.")
             except discord.Forbidden:
-                print(f"Missing permissions to kick {after.name}.")
+                print(f"Error kicking {after.name}: Missing permissions.")
             except Exception as e:
                 print(f"Error kicking {after.name}:{e}.")
 
-@client.command()
-async def ping(ctx):
-    await ctx.send(f":ping_pong: Pong! Latency: {round(client.latency * 1000)}ms")
+@client.tree.command(name="ping", description="Displays the bot latency", guild=guild)
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message(f":ping_pong: **Pong!** Latency: {round(client.latency * 1000)}ms.")    
 
-@client.command()
-async def echo(ctx, channel:discord.TextChannel, *, content:str):
-    done = '✅'
-    fail = '❎'
-    try:
-        await channel.send(content)
-        await ctx.message.add_reaction(done)
-    except discord.Forbidden:
-        await ctx.message.add_reaction(fail)
-    except discord.HTTPException:
-        await ctx.message.add_reaction(fail)
-
-
-@client.command() #Information embed command
-async def info(ctx):
+@client.tree.command(name="info", description="Displays the bot's info", guild=guild)
+async def info(interaction: discord.Interaction):
     embed = discord.Embed(
-        description = "This is the info command for **Nerissa's Little Jailbird** client, created by <@156500926880940032>.\n\nThis is version: Alpha.",
+        description = "This is the info command for **Nerissa's Little Jailbird** bot, created by <@156500926880940032>.\n\nThis is version: Alpha.",
         color=discord.Color.blue()
     )
     embed.set_footer(icon_url=client.user.avatar.url, text=f"{client.user}")
+    await interaction.response.send_message(embed=embed)
 
-    await ctx.send(embed=embed)
+@client.tree.command(name="echo", description="Makes the bot send a message to a specific channel", guild=guild)
+async def echo(interaction: discord.Interaction, channel: discord.TextChannel, message:str):
+    try:
+        await channel.send(message)
+        await interaction.response.send_message(f"Sent!", ephemeral=True)
+    except discord.Forbidden:
+        await interaction.response.send_message(f"Couldn't send message: Missing permissions.", ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(f"Couldn't send message: {e}.", ephemeral=True)
 
-@client.command() #lock command
-async def lock(ctx):
-    overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
-
+@client.tree.command(name="lock", description="Command to lock a channel", guild=guild)
+async def lock(interaction: discord.Interaction):
+    overwrite = interaction.channel.overwrites_for(interaction.guild.default_role)
     if overwrite.send_messages is False:
-        await ctx.send(f"<#{ctx.channel.id}> is already locked.")
+        await interaction.response.send_message(f"<#{interaction.channel.id}> is already locked.")
         return
-    
     overwrite.send_messages = False
-    await ctx.channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
-    await ctx.send(f"<#{ctx.channel.id}> has been locked.")
+    try:
+        await interaction.channel.set_permissions(interaction.guild.default_role, overwrite=overwrite)
+        await interaction.response.send_message(f"<#{interaction.channel.id}> has been locked.")
+    except discord.Forbidden:
+        await interaction.response.send_message(f"Failed to lock the channel: Missing permissions.")
+    except Exception as e:
+        await interaction.response.send_message(f"Failed to lock the channel: {e}")
 
-
-@client.command() #unlock command
-async def unlock(ctx):
-    overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
-
-    if overwrite.send_messages is True or None:
-        await ctx.send(f"<#{ctx.channel.id}> is already unlocked.")
+@client.tree.command(name="unlock", description="Command to unlock a channel", guild=guild)
+async def unlock(interaction: discord.Interaction):
+    overwrite = interaction.channel.overwrites_for(interaction.guild.default_role)
+    if overwrite.send_messages is True or overwrite.send_messages is None:
+        await interaction.response.send_message(f"<#{interaction.channel.id}> is already unlocked.")
         return
-
     overwrite.send_messages = None
-    await ctx.channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
-    await ctx.send(f"<#{ctx.channel.id}> has been unlocked.")
+    try:
+        await interaction.channel.set_permissions(interaction.guild.default_role, overwrite=overwrite)
+        await interaction.response.send_message(f"<#{interaction.channel.id}> has been unlocked.")
+    except discord.Forbidden:
+        await interaction.response.send_message(f"Failed to unlock the channel: Missing permissions.")
+    except Exception as e:
+        await interaction.response.send_message(f"Failed to unlock the channel: {e}")
 
-# Run client with token
-client.run(token, log_handler=handler)
+client.run(token)
