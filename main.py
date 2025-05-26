@@ -104,4 +104,14 @@ async def unlock(interaction: discord.Interaction):
     except Exception as e:
         await interaction.response.send_message(f"Failed to unlock the channel: {e}")
 
+@client.tree.command(name="affiliation", description="Command to automatically generate a poll for affiliations.", guild=guild)
+async def affiliation(interaction: discord.Interaction, server: str):
+    from datetime import timedelta
+    poll_time = timedelta(hours=72)
+    poll=discord.Poll(question=f"Affiliate with {server}?", duration=poll_time)
+    poll.add_answer(text="Yes", emoji="✅")
+    poll.add_answer(text="No", emoji="❎")
+    poll.add_answer(text="Abstain", emoji="❓")
+    await interaction.response.send_message(f"Poll for affiliation to {server}. Deadline: 3 days", poll=poll)
+
 client.run(token)
